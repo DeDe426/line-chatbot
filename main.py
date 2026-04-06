@@ -1,7 +1,6 @@
 from flask import Flask, request, abort
 import google.generativeai as genai
 import os
-import json
 from linebot.v3 import WebhookHandler
 from linebot.v3.exceptions import InvalidSignatureError
 from linebot.v3.messaging import (
@@ -16,6 +15,14 @@ model = genai.GenerativeModel("gemini-2.5-flash")
 
 configuration = Configuration(access_token=os.environ.get("LINE_CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("LINE_CHANNEL_SECRET"))
+
+system_prompt = """你是一個專業的藥物交互作用查詢助手，使用繁體中文回答。
+只回答關於藥物與藥物、藥物與保健品是否相衝的問題。
+如果用戶問其他問題，請禮貌地說明你只能回答藥物相關問題。
+回答時請提醒用戶最終仍需諮詢醫師或藥師。"""
+
+user_data = {}
+user_history = {}
 
 def make_query_form():
     flex = {
@@ -36,7 +43,21 @@ def make_query_form():
     }
     return FlexMessage(alt_text="藥物查詢表單", contents=FlexContainer.from_dict(flex))
 
-user_data = {}
+def ask_gemini(user_id, user_msg):
+    if user_id not in user_history:
+        user_history[user_id] = []
+    
+    user_history[user_id].append({"role": "user", "parts": [user_msg]})
+    
+    chat = model.start_chat(history=user_history[user_id][:-1])
+    response = chat.send_message(system_prompt + "\n\n" + user_msg)
+    
+    user_history[user_id].append({"role": "model", "parts": [response.text]})
+    
+    if len(user_history[user_id]) > 20:
+        user_history[user_id] = user_history[user_id][-20:]
+    
+    return response.text
 
 @app.route("/callback", methods=["POST"])
 def callback():
@@ -67,12 +88,7 @@ def handle_message(event):
         del user_data[user_id]["waiting_for"]
         reply = f"已記錄：{user_msg}，請繼續填寫或點查詢。"
     else:
-        system_prompt = """你是一個專業的藥物交互作用查詢助手，使用繁體中文回答。
-只回答關於藥物與藥物、藥物與保健品是否相衝的問題。
-如果用戶問其他問題，請禮貌地說明你只能回答藥物相關問題。
-回答時請提醒用戶最終仍需諮詢醫師或藥師。"""
-        response = model.generate_content(system_prompt + "\n\n用戶問題：" + user_msg)
-        reply = response.text
+        reply = ask_gemini(user_id, user_msg)
 
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
@@ -100,11 +116,8 @@ def handle_postback(event):
         if not drug1 or not drug2:
             reply = "請先輸入兩個藥物名稱再查詢。"
         else:
-            system_prompt = """你是一個專業的藥物交互作用查詢助手，使用繁體中文回答。
-回答時請提醒用戶最終仍需諮詢醫師或藥師。"""
             question = f"{drug1} 和 {drug2} 一起使用是否有相互作用或禁忌？"
-            response = model.generate_content(system_prompt + "\n\n問題：" + question)
-            reply = response.text
+            reply = ask_gemini(user_id, question)
             user_data[user_id] = {}
     else:
         reply = "請重新開始，傳送「查詢」。"
