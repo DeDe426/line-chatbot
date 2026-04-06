@@ -29,7 +29,11 @@ def callback():
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     user_msg = event.message.text
-    response = model.generate_content(user_msg)
+    system_prompt = """你是一個專業的藥物交互作用查詢助手，使用繁體中文回答。
+只回答關於藥物與藥物、藥物與保健品是否相衝的問題。
+如果用戶問其他問題，請禮貌地說明你只能回答藥物相關問題。
+回答時請提醒用戶最終仍需諮詢醫師或藥師。"""    
+    response = model.generate_content(system_prompt+"\n\n用戶問題：“＋user_msg)
     reply = response.text
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
