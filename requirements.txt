@@ -1,3 +1,5 @@
 flask
 google-generativeai
 line-bot-sdk
+pandas
+requests
