@@ -35,9 +35,9 @@ def make_query_form():
             "spacing": "md",
             "contents": [
                 {"type": "text", "text": "藥物相互作用查詢", "weight": "bold", "size": "lg"},
-                {"type": "text", "text": "藥物／保健品 1：", "size": "sm"},
+                {"type": "text", "text": "藥物／保健品 1：（商品名或成份均可）", "size": "sm"},
                 {"type": "button", "action": {"type": "postback", "label": "輸入藥物1", "data": "action=input&field=drug1"}, "style": "secondary"},
-                {"type": "text", "text": "藥物／保健品 2：", "size": "sm"},
+                {"type": "text", "text": "藥物／保健品 2：（商品名或成份均可）, "size": "sm"},
                 {"type": "button", "action": {"type": "postback", "label": "輸入藥物2", "data": "action=input&field=drug2"}, "style": "secondary"},
                 {"type": "button", "action": {"type": "postback", "label": "查詢", "data": "action=query"}, "style": "primary", "color": "#00B900"}
             ]
