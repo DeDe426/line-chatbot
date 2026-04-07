@@ -51,6 +51,16 @@ def load_drug_data():
         print(f"保健品資料庫載入失敗：{e}")
         
 def search_drug(name):
+    if supplement_df is not None:
+        result2 = supplement_df[supplement_df['中文品名'].str.contains(name, na=False)]
+        if not result2.empty:
+            row = result2.iloc[0]
+            return {
+                "中文品名": row.get("中文品名", ""),
+                "英文品名": row.get("英文品名", ""),
+                "主成分": row.get("主成分", ""),
+                "藥品類別": row.get("類別", "")
+            }  
     if drug_df is None:
         return None
     result = drug_df[drug_df['中文品名'].str.contains(name, na=False)]
