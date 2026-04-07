@@ -29,7 +29,7 @@ drug_df = None
 supplement_df = None
 health_df=None
 def load_drug_data():
-    global drug_df, supplement_df
+    global drug_df, supplement_df,health_df
     try:
         sheet_id = "16Vka0eNWBA9qM_zIij-rACfNVHenXguvDJcU1jlg6tE"
         url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
@@ -48,7 +48,7 @@ def load_drug_data():
         print("保健品資料庫載入成功")
     except Exception as e:
         print(f"保健品資料庫載入失敗：{e}")
-        global health_df
+        
     try:
         health_df = pd.read_csv('19_2.csv', encoding='utf-8')
         print("健康食品資料庫載入成功")
