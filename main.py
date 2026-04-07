@@ -1,5 +1,5 @@
 from flask import Flask, request, abort
-import google.generativeai as genai
+from google import genai
 import os
 import pandas as pd
 import requests
@@ -13,8 +13,8 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent, PostbackEvent
 
 app = Flask(__name__)
 
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-2.5-flash")
+from google import genai
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 configuration = Configuration(access_token=os.environ.get("LINE_CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("LINE_CHANNEL_SECRET"))
