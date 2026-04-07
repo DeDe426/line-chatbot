@@ -79,13 +79,22 @@ def ask_gemini(user_id, user_msg):
     if user_id not in user_history:
         user_history[user_id] = []
     user_history[user_id].append({"role": "user", "parts": [user_msg]})
-    chat = model.start_chat(history=user_history[user_id][:-1])
-    response = chat.send_message(system_prompt + "\n\n" + user_msg)
-    user_history[user_id].append({"role": "model", "parts": [response.text]})
+    full_prompt = system_prompt + "\n\n"
+    for h in user_history[user_id]:
+        if h["role"] == "user":
+            full_prompt += f"用戶：{h['parts'][0]}\n"
+        else:
+            full_prompt += f"助手：{h['parts'][0]}\n"
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=full_prompt
+    )
+    reply = response.text
+    user_history[user_id].append({"role": "model", "parts": [reply]})
     if len(user_history[user_id]) > 20:
         user_history[user_id] = user_history[user_id][-20:]
-    return response.text
-
+    return reply
+    
 @app.route("/callback", methods=["POST"])
 def callback():
     signature = request.headers["X-Line-Signature"]
