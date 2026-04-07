@@ -1,5 +1,5 @@
 flask
-google-generativeai
+google-genai
 line-bot-sdk
 pandas
 requests
