@@ -118,7 +118,9 @@ def ask_gemini(user_id, user_msg):
     if len(user_history[user_id]) > 20:
         user_history[user_id] = user_history[user_id][-20:]
     return reply
-
+@app.route("/", methods=["GET"])
+def health_check():
+    return "OK", 200
 @app.route("/callback", methods=["POST"])
 def callback():
     signature = request.headers["X-Line-Signature"]
